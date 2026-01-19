@@ -28,24 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function generateQRCodes() {
-        const url = urlInput.value.trim();
+        let input = urlInput.value.trim();
 
-        if (!url) {
-            alert('Please enter a URL');
+        if (!input) {
+            alert('Please enter a URL or text');
             return;
         }
 
-        if (!isValidUrl(url)) {
-            alert('Please enter a valid URL (e.g., https://example.com)');
-            return;
-        }
+        const processedInput = processInput(input);
 
         try {
             await Promise.all(
                 Object.keys(qrSizes).map(size => {
                     const canvasId = qrSizes[size].canvas;
                     const qrSize = qrSizes[size].size;
-                    return generateQR(canvasId, url, qrSize);
+                    return generateQR(canvasId, processedInput, qrSize);
                 })
             );
         } catch (err) {
@@ -95,12 +92,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function isValidUrl(string) {
+    function processInput(input) {
+        if (!input) return input;
+
         try {
-            new URL(string);
-            return true;
+            new URL(input);
+            return input;
         } catch (_) {
-            return false;
+            if (input.includes('.') && !input.includes(' ') && !input.startsWith('http://') && !input.startsWith('https://')) {
+                return 'https://' + input;
+            }
+            return input;
         }
     }
 });
