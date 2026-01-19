@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generator</h1>
+        <div class="input-section">
+            <input type="url" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)" />
+            <button id="generateBtn">Generate QR Codes</button>
+        </div>
+
+        <div id="qrCodesContainer" class="qr-codes-container hidden">
+            <div class="qr-item">
+                <h3>Small (200x200)</h3>
+                <canvas id="qrSmall"></canvas>
+                <button class="download-btn" data-size="small">Download Small</button>
+            </div>
+
+            <div class="qr-item">
+                <h3>Medium (300x300)</h3>
+                <canvas id="qrMedium"></canvas>
+                <button class="download-btn" data-size="medium">Download Medium</button>
+            </div>
+
+            <div class="qr-item">
+                <h3>Large (400x400)</h3>
+                <canvas id="qrLarge"></canvas>
+                <button class="download-btn" data-size="large">Download Large</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/script.js"></script>
+</body>
+</html>
