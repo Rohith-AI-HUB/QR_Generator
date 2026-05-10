@@ -1,95 +1,161 @@
 import QRCode from 'qrcode';
 
-document.addEventListener('DOMContentLoaded', function() {
-    const urlInput = document.getElementById('urlInput');
-    const generateBtn = document.getElementById('generateBtn');
-    const qrCodesContainer = document.getElementById('qrCodesContainer');
-    const downloadBtns = document.querySelectorAll('.download-btn');
+document.addEventListener('DOMContentLoaded', () => {
+    const contentInput = document.getElementById('contentInput');
+    const characterCount = document.getElementById('characterCount');
+    const fieldMessage = document.getElementById('fieldMessage');
+    const previewFrame = document.getElementById('previewFrame');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const statusStrip = document.getElementById('statusStrip');
+    const statusText = document.getElementById('statusText');
+    const sizeInputs = document.querySelectorAll('input[name="qrSize"]');
 
-    const qrSizes = {
-        small: { canvas: 'qrSmall', size: 200 },
-        medium: { canvas: 'qrMedium', size: 300 },
-        large: { canvas: 'qrLarge', size: 400 }
-    };
+    const maxLength = Number(contentInput.getAttribute('maxlength')) || 2000;
+    let debounceTimer;
+    let processedContent = '';
+    let selectedSize = getSelectedSize();
 
-    generateBtn.addEventListener('click', generateQRCodes);
-
-    urlInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            generateQRCodes();
-        }
+    contentInput.addEventListener('input', () => {
+        updateCharacterCount();
+        queuePreview();
     });
 
-    downloadBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const size = this.getAttribute('data-size');
-            downloadQRCode(size);
+    sizeInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+            selectedSize = getSelectedSize();
+            queuePreview(0);
         });
     });
 
-    async function generateQRCodes() {
-        let input = urlInput.value.trim();
+    downloadBtn.addEventListener('click', downloadQRCode);
+    copyBtn.addEventListener('click', copyContent);
 
-        if (!input) {
-            alert('Please enter a URL or text');
+    updateCharacterCount();
+    setEmptyState();
+
+    function queuePreview(delay = 250) {
+        window.clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(generatePreview, delay);
+    }
+
+    async function generatePreview() {
+        const rawContent = contentInput.value.trim();
+
+        if (!rawContent) {
+            setEmptyState();
             return;
         }
 
-        const processedInput = processInput(input);
+        if (rawContent.length > maxLength) {
+            setErrorState('Content is too long.');
+            return;
+        }
+
+        processedContent = processInput(rawContent);
 
         try {
-            await Promise.all(
-                Object.keys(qrSizes).map(size => {
-                    const canvasId = qrSizes[size].canvas;
-                    const qrSize = qrSizes[size].size;
-                    return generateQR(canvasId, processedInput, qrSize);
-                })
-            );
-        } catch (err) {
-            console.error(err);
-            alert('Failed to generate QR codes');
-            return;
+            await QRCode.toCanvas(qrCanvas, processedContent, {
+                width: selectedSize,
+                margin: 2,
+                errorCorrectionLevel: 'M',
+                color: {
+                    dark: '#111111',
+                    light: '#ffffff'
+                }
+            });
+
+            previewFrame.classList.add('has-qr');
+            contentInput.setAttribute('aria-invalid', 'false');
+            downloadBtn.disabled = false;
+            copyBtn.disabled = false;
+            fieldMessage.textContent = processedContent === rawContent
+                ? 'Preview generated from entered content.'
+                : `Preview generated from ${processedContent}.`;
+            fieldMessage.className = 'field-message success';
+            setStatus('Ready to generate');
+        } catch (error) {
+            console.error(error);
+            setErrorState('Could not generate a QR code for this content.');
         }
-
-        qrCodesContainer.classList.remove('hidden');
     }
 
-    async function generateQR(canvasId, text, size) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d');
-        canvas.width = size;
-        canvas.height = size;
-        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        await QRCode.toCanvas(canvas, text, {
-            width: size,
-            margin: 1,
-            errorCorrectionLevel: 'M',
-            color: { dark: '#000000', light: '#ffffff' }
-        });
+    function setEmptyState() {
+        processedContent = '';
+        previewFrame.classList.remove('has-qr');
+        clearCanvas();
+        contentInput.setAttribute('aria-invalid', 'false');
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        fieldMessage.textContent = 'Enter content to generate a preview.';
+        fieldMessage.className = 'field-message';
+        setStatus('Ready to generate');
     }
 
-    function downloadQRCode(size) {
-        if (!qrSizes[size]) return;
-        const canvasId = qrSizes[size].canvas;
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
+    function setErrorState(message) {
+        processedContent = '';
+        previewFrame.classList.remove('has-qr');
+        clearCanvas();
+        contentInput.setAttribute('aria-invalid', 'true');
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        fieldMessage.textContent = message;
+        fieldMessage.className = 'field-message error';
+        setStatus(message, true);
+    }
 
-        canvas.toBlob(function(blob) {
-            if (!blob) return;
+    function setStatus(message, isError = false) {
+        statusText.textContent = message;
+        statusStrip.classList.toggle('error', isError);
+    }
+
+    function updateCharacterCount() {
+        characterCount.textContent = `${contentInput.value.length} / ${maxLength}`;
+    }
+
+    function getSelectedSize() {
+        const checkedInput = document.querySelector('input[name="qrSize"]:checked');
+        return Number(checkedInput?.value || 300);
+    }
+
+    function clearCanvas() {
+        const ctx = qrCanvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+    }
+
+    function downloadQRCode() {
+        if (!processedContent) return;
+
+        qrCanvas.toBlob((blob) => {
+            if (!blob) {
+                setStatus('Download failed.', true);
+                return;
+            }
+
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            const filename = `qrcode_${size}_${Date.now()}.png`;
-
             link.href = url;
-            link.download = filename;
+            link.download = `qrcode_${selectedSize}px_${Date.now()}.png`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-        });
+            setStatus('PNG download started.');
+        }, 'image/png');
+    }
+
+    async function copyContent() {
+        if (!processedContent) return;
+
+        try {
+            await navigator.clipboard.writeText(processedContent);
+            setStatus('Content copied.');
+        } catch (error) {
+            console.error(error);
+            setStatus('Copy failed.', true);
+        }
     }
 
     function processInput(input) {
@@ -99,10 +165,12 @@ document.addEventListener('DOMContentLoaded', function() {
             new URL(input);
             return input;
         } catch (_) {
-            if (input.includes('.') && !input.includes(' ') && !input.startsWith('http://') && !input.startsWith('https://')) {
-                return 'https://' + input;
-            }
-            return input;
+            const looksLikeDomain = input.includes('.')
+                && !input.includes(' ')
+                && !input.startsWith('http://')
+                && !input.startsWith('https://');
+
+            return looksLikeDomain ? `https://${input}` : input;
         }
     }
 });

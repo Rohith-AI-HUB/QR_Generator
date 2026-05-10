@@ -1,66 +1,53 @@
 # QR Code Generator
 
-A simple and elegant QR code generator that creates QR codes in three different sizes from any website URL.
+A polished frontend-only QR code generator built with Vite, vanilla JavaScript, and the `qrcode` package.
 
 ## Features
 
-- Generate QR codes from website URLs
-- Three size options: Small (200x200), Medium (300x300), Large (400x400)
-- Download each QR code individually as PNG
-- Beautiful gradient design
-- Fully responsive
-- 100% frontend application
+- Live QR preview from any URL or text
+- Domain normalization for entries like `example.com`
+- Output size selector: 200px, 300px, and 400px
+- PNG download from the generated canvas
+- Copy the processed QR content to the clipboard
+- Inline empty, success, and error states
+- Responsive two-column workbench layout
 
 ## Local Development
 
-1. Install dependencies:
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-2. Run development server:
+Run the development server:
+
 ```bash
 npm run dev
 ```
 
-3. Build for production:
+Build for production:
+
 ```bash
 npm run build
 ```
 
-## Deploy to Vercel
+Preview the production build:
 
-### Option 1: Deploy via Vercel CLI
-
-1. Install Vercel CLI:
 ```bash
-npm install -g vercel
+npm run preview
 ```
-
-2. Deploy:
-```bash
-vercel
-```
-
-### Option 2: Deploy via Vercel Dashboard
-
-1. Push your code to GitHub
-2. Go to [vercel.com](https://vercel.com)
-3. Click "New Project"
-4. Import your GitHub repository
-5. Vercel will auto-detect the Vite configuration
-6. Click "Deploy"
 
 ## Usage
 
-1. Enter a website URL in the input field
-2. Click "Generate QR Codes" or press Enter
-3. Three QR codes will appear in different sizes
-4. Click the download button under any QR code to save it as PNG
+1. Paste a URL or text into the content field.
+2. Choose an output size.
+3. Review the live QR preview.
+4. Download the QR as a PNG or copy the processed content.
 
 ## Technologies Used
 
 - Vite
 - Vanilla JavaScript
-- QRCode.js library
 - HTML5 Canvas
+- QRCode.js library

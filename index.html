@@ -4,36 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Cpath d='M6 6h8v8H6zM18 6h8v8h-8zM6 18h8v8H6z' fill='none' stroke='%23078b86' stroke-width='3'/%3E%3Cpath d='M19 19h3v3h-3zM24 19h2v2h-2zM19 24h7v2h-7z' fill='%23078b86'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>QR Code Generator</h1>
-        <div class="input-section">
-            <input type="text" id="urlInput" placeholder="Enter URL or text (e.g., example.com, https://example.com, or any text)" />
-            <button id="generateBtn">Generate QR Codes</button>
-        </div>
-
-        <div id="qrCodesContainer" class="qr-codes-container hidden">
-            <div class="qr-item">
-                <h3>Small (200x200)</h3>
-                <canvas id="qrSmall"></canvas>
-                <button class="download-btn" data-size="small">Download Small</button>
+    <main class="app-shell">
+        <header class="app-header" aria-label="Application header">
+            <div class="brand">
+                <div class="brand-mark" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <h1>QR Code Generator</h1>
+                    <p>Create a scannable QR in seconds</p>
+                </div>
             </div>
+            <button class="icon-button" type="button" aria-label="Toggle appearance">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 4.75V3"></path>
+                    <path d="M12 21v-1.75"></path>
+                    <path d="m17.13 6.87 1.24-1.24"></path>
+                    <path d="m5.63 18.37 1.24-1.24"></path>
+                    <path d="M19.25 12H21"></path>
+                    <path d="M3 12h1.75"></path>
+                    <path d="m17.13 17.13 1.24 1.24"></path>
+                    <path d="M5.63 5.63 6.87 6.87"></path>
+                    <circle cx="12" cy="12" r="3.75"></circle>
+                </svg>
+            </button>
+        </header>
 
-            <div class="qr-item">
-                <h3>Medium (300x300)</h3>
-                <canvas id="qrMedium"></canvas>
-                <button class="download-btn" data-size="medium">Download Medium</button>
-            </div>
+        <section class="workbench" aria-label="QR generator">
+            <form class="control-panel" id="qrForm" novalidate>
+                <div class="field-group">
+                    <label for="contentInput">Content</label>
+                    <div class="textarea-wrap">
+                        <textarea id="contentInput" maxlength="2000" placeholder="Paste a URL or text" spellcheck="false"></textarea>
+                        <span class="character-count" id="characterCount">0 / 2000</span>
+                    </div>
+                    <p class="field-message" id="fieldMessage">Enter content to generate a preview.</p>
+                </div>
 
-            <div class="qr-item">
-                <h3>Large (400x400)</h3>
-                <canvas id="qrLarge"></canvas>
-                <button class="download-btn" data-size="large">Download Large</button>
-            </div>
-        </div>
-    </div>
+                <fieldset class="size-group">
+                    <legend>Output size</legend>
+                    <div class="segmented-control" role="radiogroup" aria-label="Output size">
+                        <label>
+                            <input type="radio" name="qrSize" value="200">
+                            <span>200px</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="qrSize" value="300" checked>
+                            <span>300px</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="qrSize" value="400">
+                            <span>400px</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <div class="action-stack">
+                    <button class="primary-action" id="downloadBtn" type="button" disabled>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3v11"></path>
+                            <path d="m7 10 5 5 5-5"></path>
+                            <path d="M5 19h14"></path>
+                        </svg>
+                        Download PNG
+                    </button>
+                    <button class="secondary-action" id="copyBtn" type="button" disabled>
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+                            <path d="M5 15V7a2 2 0 0 1 2-2h8"></path>
+                        </svg>
+                        Copy content
+                    </button>
+                </div>
+            </form>
+
+            <section class="preview-panel" aria-labelledby="previewTitle">
+                <h2 id="previewTitle">Preview</h2>
+                <div class="preview-frame" id="previewFrame">
+                    <canvas id="qrCanvas" aria-label="Generated QR code"></canvas>
+                    <div class="empty-preview" id="emptyPreview">
+                        <div class="empty-mark" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <p>Ready to generate</p>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <aside class="status-strip" id="statusStrip" aria-live="polite">
+            <span class="status-dot" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="m6.5 12.5 3.25 3.25L17.5 8"></path>
+                </svg>
+            </span>
+            <span id="statusText">Ready to generate</span>
+        </aside>
+    </main>
 
     <script type="module" src="/script.js"></script>
 </body>
