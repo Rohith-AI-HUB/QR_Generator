@@ -45,6 +45,10 @@ npm run preview
 3. Review the live QR preview.
 4. Download the QR as a PNG or copy the processed content.
 
+## Deployment
+
+This project is configured for Vercel with `npm run build` and the `dist` output directory.
+
 ## Technologies Used
 
 - Vite
