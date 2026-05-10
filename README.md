@@ -14,6 +14,7 @@ A polished frontend-only QR code generator built with Vite, vanilla JavaScript, 
 
 ## Local Development
 
+
 Install dependencies:
 
 ```bash
